@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKSH</title>
+  <link rel="icon" type="image/x-icon" href="assets/logo.ico">
+
+  <!-- Google Fonts: Syne for display titles & JetBrains Mono for technical labels -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- Three.js Library for Hero 3D Metallic Wireframe Mesh -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  
+      <style>
+    :root {
+      --bg-color: #0b0c0e;
+      --card-bg: #121417;
+      --text-main: #ffffff;
+      --text-muted: #8e95a2;
+      --accent-green: #00ff87;
+      --border-color: rgba(255, 255, 255, 0.09);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      overflow-x: hidden;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    /* Grain Overlay Effect */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* TYPOGRAPHY HELPERS */
+    .mono-label {
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: var(--accent-green);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mono-label::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 2px;
+      background-color: var(--accent-green);
+    }
+
+    .display-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      text-transform: uppercase;
+      line-height: 0.88;
+      letter-spacing: -1.5px;
+    }
+
+    .highlight {
+      color: var(--accent-green);
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 24px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      background: rgba(11, 12, 14, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: padding 0.3s ease;
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: var(--accent-green);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+
+    nav a {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--text-main);
+    }
+
+    .btn-talk {
+      border: 1px solid var(--border-color);
+      padding: 10px 22px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      background: transparent;
+    }
+
+    .btn-talk:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      box-shadow: 0 0 15px rgba(0, 255, 135, 0.2);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      padding: 150px 50px 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    #hero-canvas {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-top-tag {
+      font-size: 0.75rem;
+      letter-spacing: 2.5px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(3.2rem, 7vw, 6.8rem);
+      max-width: 1200px;
+      margin-bottom: 40px;
+      word-wrap: break-word;
+    }
+
+    .hero-title .line-green {
+      color: var(--accent-green);
+    }
+
+    .hero-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .hero-description {
+      max-width: 480px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .scroll-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      writing-mode: vertical-rl;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--accent-green), transparent);
+      animation: pulseLine 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseLine {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.8); }
+      50% { opacity: 1; transform: scaleY(1.1); }
+    }
+
+    .ticker {
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 22px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      display: flex;
+      background: rgba(18, 20, 23, 0.4);
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 50px;
+      animation: scrollTicker 25s linear infinite;
+    }
+
+    .ticker-item {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 50px;
+      letter-spacing: -1px;
+    }
+
+    .ticker-item span.star {
+      color: var(--accent-green);
+      font-size: 2.2rem;
+    }
+
+    @keyframes scrollTicker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .about {
+      padding: 140px 50px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+    }
+
+    .about-left h2 {
+      font-size: clamp(2.8rem, 4.5vw, 4.8rem);
+      margin-top: 24px;
+      max-width: 540px;
+    }
+
+    .about-image-wrapper {
+      position: relative;
+      margin-top: 50px;
+      max-width: 420px;
+    }
+
+    .about-image {
+      width: 100%;
+      height: 520px;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.1);
+      border: 1px solid var(--border-color);
+      transition: filter 0.5s ease;
+    }
+
+    .about-image-wrapper:hover .about-image {
+      filter: grayscale(0%) contrast(1);
+    }
+
+    .about-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 65px;
+      margin-top: 30px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 35px;
+    }
+
+    .step-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.15);
+      font-family: var(--font-display);
+      line-height: 1;
+    }
+
+    .step-content h3 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+      font-weight: 800;
+    }
+
+    .step-content p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+
+    .services {
+      padding: 40px 50px 140px 50px;
+    }
+
+    .services-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 60px;
+      margin-top: 15px;
+    }
+
+    .services-header h2 {
+      font-size: clamp(3rem, 5vw, 5rem);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .service-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 420px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card * {
+      transition: all 0.35s ease;
+    }
+
+    .service-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .service-arrow {
+      font-size: 1.4rem;
+      color: var(--text-main);
+    }
+
+    .service-card h3 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-top: 24px;
+      line-height: 1;
+    }
+
+    .service-card p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .tag {
+      border: 1px solid var(--border-color);
+      padding: 7px 12px;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      color: var(--text-main);
+    }
+
+    .service-card:hover {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 35px rgba(0, 255, 135, 0.25);
+    }
+
+    .service-card:hover .mono-label {
+      color: #050505;
+    }
+
+    .service-card:hover .mono-label::before {
+      background-color: #050505;
+    }
+
+    .service-card:hover h3,
+    .service-card:hover p,
+    .service-card:hover .service-arrow {
+      color: #050505;
+    }
+
+    .service-card:hover .service-arrow {
+      transform: translate(4px, -4px);
+    }
+
+    .service-card:hover .tag {
+      border-color: rgba(5, 5, 5, 0.3);
+      color: #050505;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .work {
+      padding: 120px 50px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .work-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 60px;
+      margin-top: 15px;
+    }
+
+    .work-header h2 {
+      font-size: clamp(3rem, 5vw, 5rem);
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 10px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--accent-green);
+      color: #050505;
+      border-color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .projects-grid {
+      column-count: 2;
+      column-gap: 30px;
+      width: 100%;
+    }
+
+    @media (min-width: 1200px) {
+      .projects-grid {
+        column-count: 3;
+        column-gap: 30px;
+      }
+    }
+
+    /* Allow each card to adjust height based on natural media dimensions */
+    .project-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      transition: transform 0.4s ease, border-color 0.4s ease;
+      break-inside: avoid;
+      margin-bottom: 30px;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .project-image {
+      position: relative;
+      width: 100%;
+      height: auto;
+      background: #181b20;
+      overflow: hidden;
+    }
+
+    /* No image cropping: preserve 100% of original image aspect ratio */
+    .project-image img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: grayscale(100%);
+      transition: transform 0.6s ease, filter 0.6s ease;
+      display: block;
+    }
+
+    .project-card:hover .project-image img {
+      filter: grayscale(0%);
+      transform: scale(1.02);
+    }
+
+    .project-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(11, 12, 14, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      z-index: 2;
+    }
+
+    .project-info {
+      padding: 32px;
+    }
+
+    .project-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .project-info h3 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .project-meta {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 6px;
+    }
+
+    .project-tags {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .project-tag {
+      color: var(--accent-green);
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+    }
+
+    /* LIVE BROWSER EMBED CARD - Standardized 16:10 Desktop Aspect Ratio */
+    .project-card.browser-card {
+      background: #000;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .project-card.browser-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 35px rgba(0, 255, 135, 0.2);
+    }
+
+    .browser-header {
+      background: #181b20;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .browser-address {
+      flex: 1;
+      background: #0b0c0e;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .browser-address .lock {
+      color: var(--accent-green);
+      font-size: 0.75rem;
+    }
+
+    .browser-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: #0d0e10;
+      overflow: hidden;
+    }
+
+    .browser-iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      filter: grayscale(100%);
+      transition: filter 0.6s ease;
+    }
+
+    .project-card.browser-card:hover .browser-iframe-wrapper iframe {
+      filter: grayscale(0%);
+    }
+
+    /* INSTAGRAM REEL CARDS - Natural 9:16 Portrait Aspect Ratio */
+    .project-card.reel-card {
+      position: relative;
+      background: #000;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .project-card.reel-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 35px rgba(0, 255, 135, 0.2);
+    }
+
+    .reel-iframe-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      overflow: hidden;
+      background: #0d0e10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .reel-iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 10px;
+      filter: grayscale(100%);
+      transition: filter 0.6s ease;
+    }
+
+    .project-card.reel-card:hover .reel-iframe-wrapper iframe {
+      filter: grayscale(0%);
+    }
+
+    .contact {
+      padding: 140px 50px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .contact-left h2 {
+      font-size: clamp(3.5rem, 6vw, 6rem);
+      margin-bottom: 24px;
+      margin-top: 15px;
+    }
+
+    .contact-left p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      max-width: 400px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .contact-details-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .contact-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .contact-card:hover {
+      border-color: var(--accent-green);
+      transform: translateX(6px);
+      background: rgba(0, 255, 135, 0.04);
+      box-shadow: 0 10px 30px rgba(0, 255, 135, 0.1);
+    }
+
+    .contact-card-type {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .contact-card-val {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .contact-card-arrow {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .contact-card:hover .contact-card-arrow {
+      color: var(--accent-green);
+      transform: translate(4px, -4px);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-color);
+      background: rgba(11, 12, 14, 0.9);
+      width: 100%;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-green);
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 1024px) {
+      .services-grid { grid-template-columns: 1fr; }
+      .projects-grid { column-count: 1; }
+      .about, .contact { grid-template-columns: 1fr; gap: 50px; }
+      header { padding: 20px 24px; }
+      .hero, .about, .services, .work, .contact { padding: 80px 24px; }
+      footer { padding: 30px 24px; flex-direction: column; gap: 20px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">LAKSH<span>.</span></div>
+    <nav>
+      <a href="#work">WORK</a>
+      <a href="#services">SERVICES</a>
+      <a href="#about">ABOUT</a>
+      <a href="#contact">CONTACT</a>
+      <a href="#contact" class="btn-talk">LET'S TALK</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <canvas id="hero-canvas"></canvas>
+
+    <div class="hero-content">
+      <div class="mono-label hero-top-tag">MULTIDISCIPLINARY CREATIVE — EST. 2025</div>
+      <h1 class="display-title hero-title">
+        Web Development.<br>
+        <span class="line-green">Graphic Design.</span><br>
+        Video Editing.
+      </h1>
+    </div>
+    
+    <div class="hero-footer">
+      <p class="hero-description">
+        I design and build cinematic digital experiences — merging code, design and film into work that moves people.
+      </p>
+      <div class="scroll-indicator">
+        <span>SCROLL</span>
+        <div class="scroll-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-track">
+      <div class="ticker-item">VISION <span class="star">✱</span> MOTION <span class="star">✱</span> CRAFT <span class="star">✱</span> VISION <span class="star">✱</span> MOTION <span class="star">✱</span> CRAFT <span class="star">✱</span></div>
+      <div class="ticker-item">VISION <span class="star">✱</span> MOTION <span class="star">✱</span> CRAFT <span class="star">✱</span> VISION <span class="star">✱</span> MOTION <span class="star">✱</span> CRAFT <span class="star">✱</span></div>
+    </div>
+  </div>
+
+  <section class="about" id="about">
+    <div class="about-left">
+      <div class="mono-label">ABOUT</div>
+      <h2 class="display-title">A studio of <span class="highlight">one</span>, ambition of many.</h2>
+      <div class="about-image-wrapper">
+        <img src="profile.png" alt="Creator Profile" class="about-image">
+      </div>
+    </div>
+
+    <div class="about-right">
+      <div class="about-steps">
+        <div class="step-item">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3>The Approach</h3>
+            <p>Every project begins with story. I treat interfaces like film — with pacing, tension and release. Nothing is decorative; everything moves with intent.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3>The Craft</h3>
+            <p>A decade obsessing over pixels, frames and milliseconds. From typographic systems to shader code, the details are where the magic lives.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3>The Result</h3>
+            <p>Work that doesn't just look premium — it performs. Fast, accessible, and engineered to convert attention into lasting impression.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="services" id="services">
+    <div class="mono-label">CAPABILITIES</div>
+    <div class="services-header">
+      <h2 class="display-title">What I do</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 320px; line-height: 1.6;">
+        <span style="background: var(--accent-green); color: #050505; padding: 2px 8px; font-weight: 600;">Three</span> disciplines. One obsessive standard. End-to-end from concept to launch.
+      </p>
+    </div>
+
+    <div class="services-grid">
+      <!-- Card 01 -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-top">
+            <span class="mono-label">/ 01</span>
+            <span class="service-arrow">↗</span>
+          </div>
+          <h3>Web Development</h3>
+          <p>High-performance, motion-rich web experiences engineered from the ground up. From marketing sites to complex applications.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">REACT / NEXT.JS</span>
+          <span class="tag">FRAMER MOTION</span>
+          <span class="tag">WEBGL / THREE.JS</span>
+          <span class="tag">HEADLESS CMS</span>
+          <span class="tag">PERFORMANCE</span>
+        </div>
+      </div>
+
+      <!-- Card 02 -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-top">
+            <span class="mono-label">/ 02</span>
+            <span class="service-arrow">↗</span>
+          </div>
+          <h3>Graphic Design</h3>
+          <p>Bold visual systems, brand identities and editorial layouts that command attention and communicate with clarity.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">ADOBE PHOTOSHOP</span>
+          <span class="tag">CANVA</span>
+          <span class="tag">ADVERTISMENTS</span>
+          <span class="tag">BANNERS</span>
+          <span class="tag">PRINT & DIGITAL</span>
+        </div>
+      </div>
+
+      <!-- Card 03 -->
+      <div class="service-card">
+        <div>
+          <div class="service-card-top">
+            <span class="mono-label">/ 03</span>
+            <span class="service-arrow">↗</span>
+          </div>
+          <h3>Video Editing</h3>
+          <p>Cinematic storytelling and post-production. Rhythmic edits, color grading and motion graphics that move people.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">ADOBE AFTER EFFECTS</span>
+          <span class="tag">ADOBE PREMIER PRO</span>
+          <span class="tag">DA VINCI RESOLVE</span>
+          <span class="tag">BLENDER</span>
+          <span class="tag">SOUND DESIGNING</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="work" id="work">
+    <div class="mono-label">SELECTED WORK</div>
+    <div class="work-header">
+      <h2 class="display-title">Recent projects</h2>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">ALL</button>
+        <button class="filter-btn" data-filter="web">WEB DEV</button>
+        <button class="filter-btn" data-filter="graphic">GRAPHIC</button>
+        <button class="filter-btn" data-filter="video">VIDEO</button>
+      </div>
+    </div>
+
+    <div class="projects-grid">
+      <!-- Project 1 (Live Website Embed) -->
+      <div class="project-card browser-card" data-category="web">
+        <div class="browser-header">
+          <div class="browser-dots">
+            <span class="browser-dot dot-red"></span>
+            <span class="browser-dot dot-yellow"></span>
+            <span class="browser-dot dot-green"></span>
+          </div>
+          <div class="browser-address">
+            <span class="lock">🔒</span> https://www.rsf-trust.in/
+          </div>
+          <a href="https://www.rsf-trust.in/" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--text-muted);" title="Open in new tab">↗</a>
+        </div>
+        <div class="browser-iframe-wrapper">
+          <iframe 
+            src="https://www.rsf-trust.in/" 
+            title="RSF Trust Live Preview"
+            loading="lazy">
+          </iframe>
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>RSF Trust</h3>
+            <a href="https://www.rsf-trust.in/" target="_blank" rel="noopener">↗</a>
+          </div>
+          <p class="project-meta">RSF Trust</p>
+          <div class="project-tags">
+            <span class="project-tag">#REACT</span>
+            <span class="project-tag">#WEBGL</span>
+            <span class="project-tag">#E-COMMERCE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 1 (Live Website Embed) -->
+      <div class="project-card browser-card" data-category="web">
+        <div class="browser-header">
+          <div class="browser-dots">
+            <span class="browser-dot dot-red"></span>
+            <span class="browser-dot dot-yellow"></span>
+            <span class="browser-dot dot-green"></span>
+          </div>
+          <div class="browser-address">
+            <span class="lock">🔒</span> https://dev-laksh.github.io/Aquaregia-26/
+          </div>
+          <a href="https://dev-laksh.github.io/Aquaregia-26/" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--text-muted);" title="Open in new tab">↗</a>
+        </div>
+        <div class="browser-iframe-wrapper">
+          <iframe 
+            src="https://dev-laksh.github.io/Aquaregia-26/" 
+            title="Aquaregia-26"
+            loading="lazy">
+          </iframe>
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Aquaregia-26</h3>
+            <a href="https://dev-laksh.github.io/Aquaregia-26/" target="_blank" rel="noopener">↗</a>
+          </div>
+          <p class="project-meta">Aquaregia-26</p>
+          <div class="project-tags">
+            <span class="project-tag">#REACT</span>
+            <span class="project-tag">#WEBGL</span>
+            <span class="project-tag">#E-COMMERCE</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 1 (Live Website Embed) -->
+      <div class="project-card browser-card" data-category="web">
+        <div class="browser-header">
+          <div class="browser-dots">
+            <span class="browser-dot dot-red"></span>
+            <span class="browser-dot dot-yellow"></span>
+            <span class="browser-dot dot-green"></span>
+          </div>
+          <div class="browser-address">
+            <span class="lock">🔒</span> https://dev-laksh.github.io/House-Price-Predictor/
+          </div>
+          <a href="https://dev-laksh.github.io/House-Price-Predictor/" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--text-muted);" title="Open in new tab">↗</a>
+        </div>
+        <div class="browser-iframe-wrapper">
+          <iframe 
+            src="https://dev-laksh.github.io/House-Price-Predictor/" 
+            title="House Price Predictor"
+            loading="lazy">
+          </iframe>
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>House Price Predictor</h3>
+            <a href="https://dev-laksh.github.io/House-Price-Predictor/" target="_blank" rel="noopener">↗</a>
+          </div>
+          <p class="project-meta">House Price Predictor</p>
+          <div class="project-tags">
+            <span class="project-tag">#REACT</span>
+            <span class="project-tag">#WEBGL</span>
+            <span class="project-tag">#E-COMMERCE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/7_20260722_145821_0001.png" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Oversized Fit</h3>
+            <span><a href="assets/7_20260722_145821_0001.png" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">NEXTWIN</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/NEW_20260715_174030_0000.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Buy 2 Get 1 FREE</h3>
+            <span><a href="assets/NEW_20260715_174030_0000.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">URBAN BOYS CLUB</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/SHOP NOW_20260716_134016_0000.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Built for the Grind</h3>
+            <span><a href="assets/SHOP NOW_20260716_134016_0000.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">THE EG STORE</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/2.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Sugandh</h3>
+            <span><a href="assets/2.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">NEXTWIN</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/3.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>We are Hiring</h3>
+            <span><a href="assets/3.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <!-- <p class="project-meta">NEXTWIN</p> -->
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/5.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>GAZE</h3>
+            <span><a href="assets/5.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">@shankerlaksh37</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/6.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>We are Hiring</h3>
+            <span><a href="assets/6.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">AKSHSTUDIOS</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/7.jpg" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Geeta Rabari</h3>
+            <span><a href="assets/7.jpg" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">Wellington Hanuman Mandir</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>      
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/file_000000001190820ba110c282fd35916a.png" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Neon Green Sweatshirt</h3>
+            <span><a href="assets/file_000000001190820ba110c282fd35916a.png" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">THEEGSTORE</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+<!-- Project 2 -->
+      <div class="project-card" data-category="graphic">
+        <div class="project-image">
+          <span class="project-badge">GRAPHIC</span>
+          <img src="assets/file_00000000fba88211a6863ce95ea1ce18.png" alt="Meridian Identity">
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Orange Sweatshirt</h3>
+            <span><a href="assets/file_00000000fba88211a6863ce95ea1ce18.png" target="_blank" rel="noopener">↗</a></span>
+          </div>
+          <p class="project-meta">THEEGSTORE</p>
+          <div class="project-tags">
+            <span class="project-tag">#BRANDING</span>
+            <span class="project-tag">#TYPOGRAPHY</span>
+            <span class="project-tag">#PRINT</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Project 3 (Video Reel 1) -->
+      <div class="project-card reel-card" data-category="video">
+        <div class="reel-iframe-wrapper">
+          <iframe 
+            src="https://www.instagram.com/reel/DVgjVLdCa4e/embed/" 
+            width="100%" 
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Project 4 (Video Reel 2) -->
+      <div class="project-card reel-card" data-category="video">
+        <div class="reel-iframe-wrapper">
+          <iframe 
+            src="https://www.instagram.com/reel/DXHs6uqSDQg/embed/" 
+            width="100%" 
+            height
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Project 4 (Video Reel 2) -->
+      <div class="project-card reel-card" data-category="graphic">
+        <div class="reel-iframe-wrapper">
+          <iframe 
+            src="https://www.instagram.com/p/DbTc2qhgXzY/embed/" 
+            width="100%" 
+            height
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Project 5 (Video Post 3) -->
+      <div class="project-card reel-card" data-category="video">
+        <div class="reel-iframe-wrapper">
+          <iframe 
+            src="https://www.instagram.com/p/Daz4VLVMKP0/embed/" 
+            width="100%" 
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+      </div>
+
+
+<!-- Project 1 (Live Website Embed) -->
+      <!-- <div class="project-card browser-card" data-category="web">
+        <div class="browser-header">
+          <div class="browser-dots">
+            <span class="browser-dot dot-red"></span>
+            <span class="browser-dot dot-yellow"></span>
+            <span class="browser-dot dot-green"></span>
+          </div>
+          <div class="browser-address">
+            <span class="lock">🔒</span> https://dev-laksh.github.io/Schoolio.io/
+          </div>
+          <a href="https://dev-laksh.github.io/Schoolio.io/" target="_blank" rel="noopener" style="font-size: 0.75rem; color: var(--text-muted);" title="Open in new tab">↗</a>
+        </div>
+        <div class="browser-iframe-wrapper">
+          <iframe 
+            src="https://dev-laksh.github.io/Schoolio.io/" 
+            title="Schoolio.io"
+            loading="lazy">
+          </iframe>
+        </div>
+        <div class="project-info">
+          <div class="project-info-header">
+            <h3>Schoolio.io</h3>
+            <a href="https://dev-laksh.github.io/Schoolio.io/" target="_blank" rel="noopener">↗</a>
+          </div>
+          <p class="project-meta">Schoolio.io</p>
+          <div class="project-tags">
+            <span class="project-tag">#REACT</span>
+            <span class="project-tag">#WEBGL</span>
+            <span class="project-tag">#E-COMMERCE</span>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- Project 6 (Video Post 4) -->
+      <div class="project-card reel-card" data-category="video">
+        <div class="reel-iframe-wrapper">
+          <iframe 
+            src="https://www.instagram.com/p/DbGN32_i9A2/embed/" 
+            width="100%" 
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="contact-left">
+      <div class="mono-label">CONTACT</div>
+      <h2 class="display-title">LET'S<br><span class="highlight">TALK</span></h2>
+      <p>Ready to bring your next project to life? Get in touch directly through phone, email or social channels.</p>
+    </div>
+
+    <div class="contact-right">
+      <div class="contact-details-grid">
+        <!-- Phone -->
+        <a href="tel:+918824193785" class="contact-card">
+          <div>
+            <div class="contact-card-type">PHONE</div>
+            <div class="contact-card-val">+91 88241 93785</div>
+          </div>
+          <span class="contact-card-arrow">↗</span>
+        </a>
+
+        <!-- Email -->
+        <a href="mailto:shankarlaksh37@gmail.com" class="contact-card">
+          <div>
+            <div class="contact-card-type">EMAIL</div>
+            <div class="contact-card-val">shankarlaksh37@gmail.com</div>
+          </div>
+          <span class="contact-card-arrow">↗</span>
+        </a>
+
+        <!-- GitHub -->
+        <a href="https://github.com/dev-laksh" target="_blank" rel="noopener" class="contact-card">
+          <div>
+            <div class="contact-card-type">GITHUB</div>
+            <div class="contact-card-val">@dev-laksh</div>
+          </div>
+          <span class="contact-card-arrow">↗</span>
+        </a>
+
+        <!-- LinkedIn -->
+        <a href="https://www.linkedin.com/in/lakshya-shanker-8700b91a6/" target="_blank" rel="noopener" class="contact-card">
+          <div>
+            <div class="contact-card-type">LINKEDIN</div>
+            <div class="contact-card-val">Lakshya Shanker</div>
+          </div>
+          <span class="contact-card-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Instagram -->
+        <!-- <a href="https://www.instagram.com/shankerlaksh37/" target="_blank" rel="noopener" class="contact-card">
+          <div>
+            <div class="contact-card-type">Instagram</div>
+            <div class="contact-card-val">@shankarlaksh37</div>
+          </div>
+          <span class="contact-card-arrow">↗</span>
+        </a>
+      </div>
+    </div>-->
+  </section> 
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="logo">LAKSH<span>.</span></div>
+    <div class="footer-links">
+      <a href="https://www.instagram.com/shankerlaksh37/" target="_blank" rel="noopener">INSTAGRAM</a>
+      <a href="https://www.linkedin.com/in/lakshya-shanker-8700b91a6/" target="_blank" rel="noopener">LINKEDIN</a>
+    </div>
+  </footer>
+
+<script>
+    // 2. PROJECT FILTERING LOGIC
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const projectCards = document.querySelectorAll('.project-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const filter = btn.getAttribute('data-filter');
+
+        projectCards.forEach(card => {
+          if (filter === 'all' || card.getAttribute('data-category') === filter) {
+            card.style.display = 'inline-block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
